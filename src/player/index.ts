@@ -22,7 +22,7 @@ import {
   workspace
 } from "vscode";
 import { SMALL_ICON_URL } from "../constants";
-import { CodeTour, store } from "../store";
+import { CodeTour, CodeTourStep, store } from "../store";
 import { initializeStorage } from "../store/storage";
 import {
   getActiveStepMarker,
@@ -33,7 +33,6 @@ import {
   getTourTitle
 } from "../utils";
 import { isAccessibilitySupportOn } from "./a11yHelpers";
-// import { isAccessibilitySupportOn } from "./a11yhelpers";
 import { registerCodeStatusModule } from "./codeStatus";
 import { registerPlayerCommands } from "./commands";
 import { registerDecorators } from "./decorator";
@@ -56,6 +55,8 @@ const TOUR_REFERENCE_PATTERN =
   /(?:\[(?<linkTitle>[^\]]+)\])?\[(?=\s*[^\]\s])(?<tourTitle>[^\]#]+)?(?:#(?<stepNumber>\d+))?\](?!\()/gm;
 const FILE_REFERENCE_PATTERN = /(\!)?(\[[^\]]+\]\()(\.[^\)]+)(?=\))/gm;
 const CODE_FENCE_PATTERN = /```[^\n]+\n(.+)\n```/gms;
+
+const DIVIDER = "\n\n---\n";
 
 export function generatePreviewContent(content: string) {
   return content
@@ -230,6 +231,62 @@ function getNextTour(): CodeTour | undefined {
   }
 }
 
+function getHeaderText(step: CodeTourStep): string {
+  if (isAccessibilitySupportOn() && step.line && step.file) {
+    const lineAndFileInfoLabel = `This step is on line ${step.line} in file ${step.file}.`;
+    return DIVIDER + lineAndFileInfoLabel + DIVIDER;
+  } else {
+    return DIVIDER;
+  }
+}
+
+function getPreviousStepText(currentTour: CodeTour, currentStep: number) {
+  const stepLabel = getStepLabel(
+    currentTour,
+    currentStep - 1,
+    false,
+    false
+  );
+  const suffix = stepLabel ? ` (${stepLabel})` : "";
+  return `← [Previous${suffix}](command:codetour.previousTourStep "Navigate to previous step")`;
+}
+
+function getPreviousTourText() {
+  const previousTour = getPreviousTour();
+  if (!previousTour) {
+    return "";
+  }
+  const tourTitle = getTourTitle(previousTour);
+  const argsContent = encodeURIComponent(
+    JSON.stringify([previousTour.title])
+  );
+  return `← [Previous Tour (${tourTitle})](command:codetour.startTourByTitle?${argsContent} "Navigate to previous tour")`;
+}
+
+function getNextStepText(currentTour: CodeTour, currentStep: number) {
+  const stepLabel = getStepLabel(
+    currentTour,
+    currentStep + 1,
+    false,
+    false
+  );
+  const suffix = stepLabel ? ` (${stepLabel})` : "";
+  return `[Next${suffix}](command:codetour.nextTourStep "Navigate to next step") →`;
+}
+
+function getNextTourText(): string {
+  const nextTour = getNextTour();
+  if (nextTour) {
+    const tourTitle = getTourTitle(nextTour);
+    const argsContent = encodeURIComponent(
+      JSON.stringify([nextTour.title])
+    );
+    return `[Next Tour (${tourTitle})](command:codetour.finishTour?${argsContent} "Start next tour")`;
+  } else {
+    return `[Finish Tour](command:codetour.finishTour "Finish the tour")`;
+  }
+}
+
 async function renderCurrentStep() {
   if (store.activeTour!.thread) {
     store.activeTour!.thread.dispose();
@@ -289,59 +346,37 @@ async function renderCurrentStep() {
     store.isRecording && store.isEditing
       ? CommentMode.Editing
       : CommentMode.Preview;
+
   let content = step.description;
+
+  if (!store.isEditing) {
+    const header = getHeaderText(step);
+    content = header + content;
+  }
 
   let hasPreviousStep = currentStep > 0;
   const hasNextStep = currentStep < currentTour.steps.length - 1;
   const isFinalStep = currentStep === currentTour.steps.length - 1;
 
   const showNavigation = hasPreviousStep || hasNextStep || isFinalStep;
-  if (!store.isEditing && showNavigation) {
-    content += "\n\n---\n";
-
+  // For now we'll just turn off navigation links when in a11y mode
+  if (!store.isEditing && showNavigation && !isAccessibilitySupportOn()) {
+    content += DIVIDER;
     if (hasPreviousStep) {
-      const stepLabel = getStepLabel(
-        currentTour,
-        currentStep - 1,
-        false,
-        false
-      );
-      const suffix = stepLabel ? ` (${stepLabel})` : "";
-      content += `← [Previous${suffix}](command:codetour.previousTourStep "Navigate to previous step")`;
+      content += getPreviousStepText(currentTour, currentStep);
     } else {
-      const previousTour = getPreviousTour();
-      if (previousTour) {
+      let text = getPreviousTourText();
+      if (text) {
         hasPreviousStep = true;
-
-        const tourTitle = getTourTitle(previousTour);
-        const argsContent = encodeURIComponent(
-          JSON.stringify([previousTour.title])
-        );
-        content += `← [Previous Tour (${tourTitle})](command:codetour.startTourByTitle?${argsContent} "Navigate to previous tour")`;
+        content += text;
       }
     }
 
     const prefix = hasPreviousStep ? " | " : "";
     if (hasNextStep) {
-      const stepLabel = getStepLabel(
-        currentTour,
-        currentStep + 1,
-        false,
-        false
-      );
-      const suffix = stepLabel ? ` (${stepLabel})` : "";
-      content += `${prefix}[Next${suffix}](command:codetour.nextTourStep "Navigate to next step") →`;
+      content += prefix + getNextStepText(currentTour, currentStep);
     } else if (isFinalStep) {
-      const nextTour = getNextTour();
-      if (nextTour) {
-        const tourTitle = getTourTitle(nextTour);
-        const argsContent = encodeURIComponent(
-          JSON.stringify([nextTour.title])
-        );
-        content += `${prefix}[Next Tour (${tourTitle})](command:codetour.finishTour?${argsContent} "Start next tour")`;
-      } else {
-        content += `${prefix}[Finish Tour](command:codetour.finishTour "Finish the tour")`;
-      }
+      content += prefix + getNextTourText();
     }
   }
 
