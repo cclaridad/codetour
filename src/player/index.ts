@@ -32,6 +32,7 @@ import {
   getStepLabel,
   getTourTitle
 } from "../utils";
+import { isAccessibilitySupportOn } from "./a11yHelpers";
 // import { isAccessibilitySupportOn } from "./a11yhelpers";
 import { registerCodeStatusModule } from "./codeStatus";
 import { registerPlayerCommands } from "./commands";
@@ -248,8 +249,8 @@ async function renderCurrentStep() {
   let line = step.line
     ? step.line - 1
     : step.selection
-    ? step.selection.end.line - 1
-    : undefined;
+      ? step.selection.end.line - 1
+      : undefined;
 
   if (step.file && line === undefined) {
     const stepPattern = step.pattern || getActiveStepMarker();
@@ -424,10 +425,11 @@ async function renderCurrentStep() {
 }
 
 async function showDocument(uri: Uri, range: Range, selection?: Selection) {
+  const preserveFocusBasedOnAccessibilitySupport = !isAccessibilitySupportOn() ? true : false;
   const document =
     window.visibleTextEditors.find(
       editor => editor.document.uri.toString() === uri.toString()
-    ) || (await window.showTextDocument(uri, { preserveFocus: false }));
+    ) || (await window.showTextDocument(uri, { preserveFocus: preserveFocusBasedOnAccessibilitySupport }));
 
   // TODO: Figure out how to force focus when navigating
   // to documents which are already open.
@@ -456,16 +458,16 @@ export function registerPlayerModule(context: ExtensionContext) {
     () => [
       store.activeTour
         ? [
-            store.activeTour.step,
-            store.activeTour.tour.title,
-            store.activeTour.tour.steps.map(step => [
-              step.title,
-              step.description,
-              step.line,
-              step.directory,
-              step.view
-            ])
-          ]
+          store.activeTour.step,
+          store.activeTour.tour.title,
+          store.activeTour.tour.steps.map(step => [
+            step.title,
+            step.description,
+            step.line,
+            step.directory,
+            step.view
+          ])
+        ]
         : null
     ],
     () => {
