@@ -242,12 +242,7 @@ function getHeaderText(step: CodeTourStep): string {
 }
 
 function getPreviousStepText(currentTour: CodeTour, currentStep: number) {
-  const stepLabel = getStepLabel(
-    currentTour,
-    currentStep - 1,
-    false,
-    false
-  );
+  const stepLabel = getStepLabel(currentTour, currentStep - 1, false, false);
   const suffix = stepLabel ? ` (${stepLabel})` : "";
   return `← [Previous${suffix}](command:codetour.previousTourStep "Navigate to previous step")`;
 }
@@ -258,19 +253,12 @@ function getPreviousTourText() {
     return "";
   }
   const tourTitle = getTourTitle(previousTour);
-  const argsContent = encodeURIComponent(
-    JSON.stringify([previousTour.title])
-  );
+  const argsContent = encodeURIComponent(JSON.stringify([previousTour.title]));
   return `← [Previous Tour (${tourTitle})](command:codetour.startTourByTitle?${argsContent} "Navigate to previous tour")`;
 }
 
 function getNextStepText(currentTour: CodeTour, currentStep: number) {
-  const stepLabel = getStepLabel(
-    currentTour,
-    currentStep + 1,
-    false,
-    false
-  );
+  const stepLabel = getStepLabel(currentTour, currentStep + 1, false, false);
   const suffix = stepLabel ? ` (${stepLabel})` : "";
   return `[Next${suffix}](command:codetour.nextTourStep "Navigate to next step") →`;
 }
@@ -279,9 +267,7 @@ function getNextTourText(): string {
   const nextTour = getNextTour();
   if (nextTour) {
     const tourTitle = getTourTitle(nextTour);
-    const argsContent = encodeURIComponent(
-      JSON.stringify([nextTour.title])
-    );
+    const argsContent = encodeURIComponent(JSON.stringify([nextTour.title]));
     return `[Next Tour (${tourTitle})](command:codetour.finishTour?${argsContent} "Start next tour")`;
   } else {
     return `[Finish Tour](command:codetour.finishTour "Finish the tour")`;
@@ -307,8 +293,8 @@ async function renderCurrentStep() {
   let line = step.line
     ? step.line - 1
     : step.selection
-      ? step.selection.end.line - 1
-      : undefined;
+    ? step.selection.end.line - 1
+    : undefined;
 
   if (step.file && line === undefined) {
     const stepPattern = step.pattern || getActiveStepMarker();
@@ -330,11 +316,6 @@ async function renderCurrentStep() {
 
   const range = new Range(line!, 0, line!, 0);
   let label = `Step #${currentStep + 1} of ${currentTour!.steps.length}`;
-
-  // EXAMPLE of how to use this helper in various pieces of the CodeTour UI
-  // if (isAccessibilitySupportOn()) {
-  //   label += "Accessibility support is on!";
-  // }
 
   if (currentTour.title) {
     const title = getTourTitle(currentTour);
@@ -494,16 +475,16 @@ export function registerPlayerModule(context: ExtensionContext) {
     () => [
       store.activeTour
         ? [
-          store.activeTour.step,
-          store.activeTour.tour.title,
-          store.activeTour.tour.steps.map(step => [
-            step.title,
-            step.description,
-            step.line,
-            step.directory,
-            step.view
-          ])
-        ]
+            store.activeTour.step,
+            store.activeTour.tour.title,
+            store.activeTour.tour.steps.map(step => [
+              step.title,
+              step.description,
+              step.line,
+              step.directory,
+              step.view
+            ])
+          ]
         : null
     ],
     () => {
