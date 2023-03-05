@@ -179,6 +179,7 @@ export async function stopPlayer() {
 }
 
 const VIEW_COMMANDS = new Map([
+  ["comments:focus", "workbench.action.focusCommentsPanel"],
   ["comments", "workbench.panel.comments"],
   ["console", "workbench.panel.console"],
   ["debug", "workbench.view.debug"],
