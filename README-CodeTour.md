@@ -1,11 +1,3 @@
-# CSE P 590 B final project
-
-Read our [project writeup](WRITEUP.md).
-
-Original CodeTour README contents below.
-
----
-
 # CodeTour 🗺️
 
 CodeTour is a Visual Studio Code extension, which allows you to record and play back guided walkthroughs of your codebases. It's like a table of contents, that can make it easier to onboard (or re-board!) to a new project/feature area, visualize bug reports, or understand the context of a code review/PR change. A "code tour" is simply a series of interactive steps, each of which are associated with a specific directory, or file/line, and include a description of the respective code. This allows developers to clone a repo, and then immediately start **learning it**, without needing to refer to a `CONTRIBUTING.md` file and/or rely on help from others. Tours can either be checked into a repo, to enable sharing with other contributors, or [exported](#exporting-tours) to a "tour file", which allows anyone to replay the same tour, without having to clone any code to do it!
@@ -388,13 +380,13 @@ The `CodeTour` extension contributes the following settings:
 
 In addition to the available commands, the Code Tour extension also contributes the following commands, which are active while you're currently taking a tour:
 
-| Windows/Linux | macOS     | Description                             |
-| ------------- | --------- | --------------------------------------- |
-| `ctrl+k j`    | `cmd+k j` | Move to the next step in the tour       |
-| `ctrl+k l`    | `cmd+k l` | Move to the previous step in the tour   |
-| `ctrl+k k`    | `cmd+k k` | End the current tour, if one is started |
-| `ctrl+k k`    | `cmd+k k` | Start a tour, if one is not started     |
-| `ctrl+k g`    | `cmd+k g` | Go to a specific tour step (within valid range)    |
+| Windows/Linux | macOS     | Description                                     |
+| ------------- | --------- | ----------------------------------------------- |
+| `ctrl+k j`    | `cmd+k j` | Move to the next step in the tour               |
+| `ctrl+k l`    | `cmd+k l` | Move to the previous step in the tour           |
+| `ctrl+k k`    | `cmd+k k` | End the current tour, if one is started         |
+| `ctrl+k k`    | `cmd+k k` | Start a tour, if one is not started             |
+| `ctrl+k g`    | `cmd+k g` | Go to a specific tour step (within valid range) |
 
 ## Extension API
 
